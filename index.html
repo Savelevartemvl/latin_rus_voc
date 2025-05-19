@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Cловарь с тестом</title>
+<title>Словарь с тестом</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
   * {
@@ -175,6 +175,22 @@
   .hidden {
     display: none !important;
   }
+  .direction-switch {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+  .direction-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+  .direction-radio {
+    width: 1.2em;
+    height: 1.2em;
+  }
   @media (max-width: 480px) {
     form {
       flex-direction: column;
@@ -182,16 +198,20 @@
     button {
       width: 100%;
     }
+    .direction-switch {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 </style>
 </head>
 <body>
-<header>Cловарь с тестом</header>
+<header>Словарь с тестом</header>
 <main>
   <section id="add-word-section">
     <h2>Добавить новое слово</h2>
     <form id="add-word-form">
-      <input type="text" id="latin-word" placeholder="Латинское слово" required autocomplete="off" />
+      <input type="text" id="latin-word" placeholder="Иностранное слово" required autocomplete="off" />
       <input type="text" id="translation" placeholder="Перевод" required autocomplete="off" />
       <button type="submit">Добавить</button>
     </form>
@@ -207,6 +227,16 @@
 
   <section id="test-section">
     <h2>Пройти тест</h2>
+    <div class="direction-switch">
+      <label class="direction-option">
+        <input type="radio" class="direction-radio" name="direction" value="latinToRussian" checked>
+        Иностранный → Русский
+      </label>
+      <label class="direction-option">
+        <input type="radio" class="direction-radio" name="direction" value="russianToLatin">
+        Русский → Иностранный
+      </label>
+    </div>
     <form id="start-test-form">
       <input type="number" id="test-count" placeholder="Количество слов для теста" min="1" required />
       <button type="submit">Начать тест</button>
@@ -231,6 +261,7 @@
   let testWords = [];
   let currentIndex = 0;
   let correctCount = 0;
+  let translationDirection = 'latinToRussian';
 
   // Инициализация элементов
   const addForm = document.getElementById('add-word-form');
@@ -247,6 +278,7 @@
   const testResultElem = document.getElementById('test-result');
   const toggleListBtn = document.getElementById('toggle-list-btn');
   const wordList = document.getElementById('word-list');
+  const directionRadios = document.querySelectorAll('.direction-radio');
 
   // Работа с хранилищем
   function loadWords() {
@@ -261,7 +293,7 @@
     localStorage.setItem(storageKey, JSON.stringify(words));
   }
 
-  // Функции для работы со словами
+  // Управление словами
   function addWord(latin, translation) {
     const words = loadWords();
     if (words.some(w => w.latin.toLowerCase() === latin.toLowerCase())) {
@@ -304,6 +336,21 @@
       : 'Скрыть список';
   });
 
+  // Направление перевода
+  directionRadios.forEach(radio => {
+    radio.addEventListener('change', (e) => {
+      translationDirection = e.target.value;
+      localStorage.setItem('translationDirection', translationDirection);
+    });
+  });
+
+  // Восстановление направления
+  const savedDirection = localStorage.getItem('translationDirection');
+  if (savedDirection) {
+    translationDirection = savedDirection;
+    document.querySelector(`input[value="${savedDirection}"]`).checked = true;
+  }
+
   // Логика тестирования
   function startTest(n) {
     const words = loadWords();
@@ -311,6 +358,7 @@
       alert('Добавьте слова в словарь!');
       return;
     }
+    
     testWords = shuffle(words).slice(0, Math.min(n, words.length));
     currentIndex = 0;
     correctCount = 0;
@@ -326,7 +374,11 @@
     testAnswerInput.value = '';
     feedbackElem.textContent = '';
     if (currentIndex < testWords.length) {
-      testQuestionElem.textContent = `Переведите: "${testWords[currentIndex].latin}"`;
+      const currentWord = testWords[currentIndex];
+      const question = translationDirection === 'latinToRussian'
+        ? `Переведите: "${currentWord.latin}"`
+        : `Переведите: "${currentWord.translation}"`;
+      testQuestionElem.textContent = question;
       testAnswerInput.focus();
     } else {
       finishTest();
@@ -340,14 +392,25 @@
 
   function checkAnswer() {
     const answer = testAnswerInput.value.trim().toLowerCase();
-    const correct = testWords[currentIndex].translation.toLowerCase();
+    const currentWord = testWords[currentIndex];
     
+    let correct;
+    if (translationDirection === 'latinToRussian') {
+      correct = currentWord.translation.toLowerCase();
+    } else {
+      correct = currentWord.latin.toLowerCase();
+    }
+
     if (answer === correct) {
       correctCount++;
       feedbackElem.textContent = 'Верно!';
       feedbackElem.className = 'correct';
     } else {
-      feedbackElem.textContent = `Неверно! Правильно: ${testWords[currentIndex].translation}`;
+      feedbackElem.textContent = `Неверно! Правильно: ${
+        translationDirection === 'latinToRussian' 
+          ? currentWord.translation 
+          : currentWord.latin
+      }`;
       feedbackElem.className = 'incorrect';
     }
     
