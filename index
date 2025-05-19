@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Латинский словарик</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    background: #f0f4f8;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+  header {
+    background: #4a90e2;
+    color: white;
+    padding: 1rem 2rem;
+    font-weight: 600;
+    font-size: 1.5rem;
+    text-align: center;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.2);
+  }
+  main {
+    flex-grow: 1;
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  section {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgb(0 0 0 / 0.1);
+    padding: 1.5rem 2rem;
+    margin-bottom: 2rem;
+  }
+  h2 {
+    margin-top: 0;
+    color: #4a90e2;
+  }
+  form {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  input[type="text"],
+  input[type="number"] {
+    flex: 1 1 150px;
+    padding: 0.5rem 0.75rem;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+  }
+  input[type="text"]:focus,
+  input[type="number"]:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 6px rgba(74,144,226,0.4);
+  }
+  button {
+    background: #4a90e2;
+    border: none;
+    color: white;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+    align-self: center;
+  }
+  button:hover {
+    background: #357abd;
+  }
+  ul.word-list {
+    list-style: none;
+    padding-left: 0;
+    max-height: 240px;
+    overflow-y: auto;
+  }
+  ul.word-list li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e0e0e0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 500;
+  }
+  ul.word-list li:last-child {
+    border-bottom: none;
+  }
+  .word-text {
+    font-family: 'Courier New', Courier, monospace;
+    color: #2a2a2a;
+  }
+  .translation-text {
+    color: #666;
+    font-style: italic;
+  }
+  .test-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  .test-question {
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+    color: #4a90e2;
+  }
+  .test-input {
+    padding: 0.5rem 0.75rem;
+    font-size: 1.1rem;
+    width: 100%;
+    max-width: 350px;
+    margin-bottom: 1rem;
+    border: 1.5px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.2s ease;
+  }
+  .test-input:focus {
+    outline: none;
+    border-color: #4a90e2;
+    box-shadow: 0 0 6px rgba(74,144,226,0.4);
+  }
+  .test-result {
+    margin-top: 1rem;
+    font-weight: 600;
+  }
+  .feedback {
+    margin-top: 0.5rem;
+    font-weight: 600;
+    height: 1.4rem;
+  }
+  .correct {
+    color: #2e7d32;
+  }
+  .incorrect {
+    color: #c62828;
+  }
+  .btn-group {
+    display: flex;
+    gap: 1rem;
+  }
+  .delete-btn {
+    background: none;
+    border: none;
+    color: #c62828;
+    font-weight: bold;
+    font-size: 1.4rem;
+    cursor: pointer;
+    padding: 0 0.5rem;
+    margin-left: 1rem;
+    transition: color 0.2s ease;
+  }
+  .delete-btn:hover {
+    color: #ff0000;
+  }
+  .toggle-visibility-btn {
+    background: #e0e0e0;
+    color: #333;
+    padding: 0.3rem 0.8rem;
+    font-size: 0.9rem;
+  }
+  .toggle-visibility-btn:hover {
+    background: #d0d0d0;
+  }
+  .hidden {
+    display: none !important;
+  }
+  @media (max-width: 480px) {
+    form {
+      flex-direction: column;
+    }
+    button {
+      width: 100%;
+    }
+  }
+</style>
+</head>
+<body>
+<header>Латинский словарик</header>
+<main>
+  <section id="add-word-section">
+    <h2>Добавить новое слово</h2>
+    <form id="add-word-form">
+      <input type="text" id="latin-word" placeholder="Латинское слово" required autocomplete="off" />
+      <input type="text" id="translation" placeholder="Перевод" required autocomplete="off" />
+      <button type="submit">Добавить</button>
+    </form>
+  </section>
+
+  <section id="word-list-section">
+    <div style="display: flex; align-items: center; gap: 1rem;">
+      <h2>Список слов</h2>
+      <button id="toggle-list-btn" class="toggle-visibility-btn">Скрыть список</button>
+    </div>
+    <ul id="word-list" class="word-list"></ul>
+  </section>
+
+  <section id="test-section">
+    <h2>Пройти тест</h2>
+    <form id="start-test-form">
+      <input type="number" id="test-count" placeholder="Количество слов для теста" min="1" required />
+      <button type="submit">Начать тест</button>
+    </form>
+
+    <div id="test-area" style="display:none;">
+      <div class="test-question" id="test-question"></div>
+      <input type="text" id="test-answer" class="test-input" placeholder="Введите перевод" autocomplete="off" />
+      <div class="btn-group">
+        <button id="submit-answer-btn">Ответить</button>
+        <button id="skip-word-btn" style="background:#ccc; color:#333;">Пропустить</button>
+      </div>
+      <div class="feedback" id="feedback"></div>
+      <div class="test-result" id="test-result"></div>
+    </div>
+  </section>
+</main>
+
+<script>
+(() => {
+  const storageKey = 'latinVocabWords';
+  let testWords = [];
+  let currentIndex = 0;
+  let correctCount = 0;
+
+  // Инициализация элементов
+  const addForm = document.getElementById('add-word-form');
+  const latinInput = document.getElementById('latin-word');
+  const translationInput = document.getElementById('translation');
+  const startTestForm = document.getElementById('start-test-form');
+  const testCountInput = document.getElementById('test-count');
+  const testArea = document.getElementById('test-area');
+  const testQuestionElem = document.getElementById('test-question');
+  const testAnswerInput = document.getElementById('test-answer');
+  const submitAnswerBtn = document.getElementById('submit-answer-btn');
+  const skipWordBtn = document.getElementById('skip-word-btn');
+  const feedbackElem = document.getElementById('feedback');
+  const testResultElem = document.getElementById('test-result');
+  const toggleListBtn = document.getElementById('toggle-list-btn');
+  const wordList = document.getElementById('word-list');
+
+  // Работа с хранилищем
+  function loadWords() {
+    try {
+      return JSON.parse(localStorage.getItem(storageKey)) || [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveWords(words) {
+    localStorage.setItem(storageKey, JSON.stringify(words));
+  }
+
+  // Функции для работы со словами
+  function addWord(latin, translation) {
+    const words = loadWords();
+    if (words.some(w => w.latin.toLowerCase() === latin.toLowerCase())) {
+      alert('Это слово уже есть в словаре!');
+      return false;
+    }
+    words.push({ latin, translation });
+    saveWords(words);
+    updateWordList(words);
+    return true;
+  }
+
+  function deleteWord(latin) {
+    const words = loadWords().filter(w => w.latin !== latin);
+    saveWords(words);
+    updateWordList(words);
+  }
+
+  function updateWordList(words) {
+    wordList.innerHTML = words.map(({ latin, translation }) => `
+      <li>
+        <div style="flex-grow: 1;">
+          <span class="word-text">${latin}</span> — 
+          <span class="translation-text">${translation}</span>
+        </div>
+        <button class="delete-btn" data-latin="${latin}">×</button>
+      </li>
+    `).join('');
+    
+    document.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', () => deleteWord(btn.dataset.latin));
+    });
+  }
+
+  // Управление видимостью списка
+  toggleListBtn.addEventListener('click', () => {
+    wordList.classList.toggle('hidden');
+    toggleListBtn.textContent = wordList.classList.contains('hidden') 
+      ? 'Показать список' 
+      : 'Скрыть список';
+  });
+
+  // Логика тестирования
+  function startTest(n) {
+    const words = loadWords();
+    if (!words.length) {
+      alert('Добавьте слова в словарь!');
+      return;
+    }
+    testWords = shuffle(words).slice(0, Math.min(n, words.length));
+    currentIndex = 0;
+    correctCount = 0;
+    testArea.style.display = 'flex';
+    showCurrentWord();
+  }
+
+  function shuffle(arr) {
+    return [...arr].sort(() => Math.random() - 0.5);
+  }
+
+  function showCurrentWord() {
+    testAnswerInput.value = '';
+    feedbackElem.textContent = '';
+    if (currentIndex < testWords.length) {
+      testQuestionElem.textContent = `Переведите: "${testWords[currentIndex].latin}"`;
+      testAnswerInput.focus();
+    } else {
+      finishTest();
+    }
+  }
+
+  function finishTest() {
+    testResultElem.textContent = `Результат: ${correctCount}/${testWords.length}`;
+    testArea.style.display = 'none';
+  }
+
+  function checkAnswer() {
+    const answer = testAnswerInput.value.trim().toLowerCase();
+    const correct = testWords[currentIndex].translation.toLowerCase();
+    
+    if (answer === correct) {
+      correctCount++;
+      feedbackElem.textContent = 'Верно!';
+      feedbackElem.className = 'correct';
+    } else {
+      feedbackElem.textContent = `Неверно! Правильно: ${testWords[currentIndex].translation}`;
+      feedbackElem.className = 'incorrect';
+    }
+    
+    currentIndex++;
+    setTimeout(showCurrentWord, 1500);
+  }
+
+  // Обработчики событий
+  addForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const latin = latinInput.value.trim();
+    const translation = translationInput.value.trim();
+    if (latin && translation && addWord(latin, translation)) {
+      latinInput.value = '';
+      translationInput.value = '';
+    }
+  });
+
+  startTestForm.addEventListener('submit', e => {
+    e.preventDefault();
+    const count = parseInt(testCountInput.value) || 0;
+    count > 0 ? startTest(count) : alert('Введите число больше 0!');
+  });
+
+  submitAnswerBtn.addEventListener('click', e => {
+    e.preventDefault();
+    checkAnswer();
+  });
+
+  skipWordBtn.addEventListener('click', e => {
+    e.preventDefault();
+    currentIndex++;
+    showCurrentWord();
+  });
+
+  // Инициализация
+  updateWordList(loadWords());
+})();
+</script>
+</body>
+</html>
